@@ -2,6 +2,7 @@
 
 from rest_framework import serializers
 import re
+from .models import Image, PDF 
 
 class UploadSerializer(serializers.Serializer):
     upload = serializers.CharField()
@@ -17,3 +18,18 @@ class UploadSerializer(serializers.Serializer):
             raise serializers.ValidationError("this is not a base64 type")
         return value
 
+
+class ImageSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Image
+        fields = '__all__'
+
+
+
+
+class PDFSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PDF
+        fields = '__all__'

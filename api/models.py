@@ -3,10 +3,10 @@ from django.db import models
 # Create your models here.
 
 class Image(models.Model):
-    image = models.FileField(upload_to='images')
+    image_path = models.FileField(upload_to='images')
     width = models.IntegerField()
     height = models.IntegerField()
-    num_pages = models.PositiveIntegerField()
+    channels = models.PositiveIntegerField()
 
 
 
@@ -20,10 +20,10 @@ class Image(models.Model):
 
 
 class PDF(models.Model):
-    pdf = models.FileField(upload_to='pdfs')
+    pdf_path = models.FileField(upload_to='pdfs')
     width = models.DecimalField(max_digits=5, decimal_places=2)
     height = models.DecimalField(max_digits=5, decimal_places=2)
-    channels = models.PositiveIntegerField()
+    num_pages = models.PositiveIntegerField()
 
 
     class Meta:
