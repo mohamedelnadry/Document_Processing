@@ -38,3 +38,18 @@ def get_image_data(file_data):
     height = img.size[1]
     channels = len(img.getbands())
     return width, height, channels
+
+from PIL import Image
+
+def rotate_image(image_path, angle):
+
+    try:
+        with Image.open(image_path) as img:
+            rotated_img = img.rotate(int(angle))
+            img.close()
+            rotated_img.save(image_path)
+
+        return image_path
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None

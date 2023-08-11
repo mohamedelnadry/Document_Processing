@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from .serializers import UploadSerializer, ImageSerializer, PDFSerializer
 from .services import ApiServices
-from .utils import base64_convert, get_pdf_data, get_image_data
+from .utils import base64_convert, get_pdf_data, get_image_data, rotate_image
 from .models import Image, PDF
 
 
@@ -23,7 +23,7 @@ class UploadVeiws(APIView):
 
         if ext == "pdf":
             width, height, num_pages = get_pdf_data(file_data)
-            pdf = ApiServices.CreatePDF(file_data, width, height, num_pages)
+            pdf = ApiServices.createPDF(file_data, width, height, num_pages)
             if pdf:
                 return Response(
                     {"detail": "file uploaded successfuly", "id": pdf.id},
@@ -32,7 +32,7 @@ class UploadVeiws(APIView):
 
         if ext in ["png", "jpg", "jpeg", "gif"]:
             width, height, channels = get_image_data(file_data)
-            image = ApiServices.CreateImage(file_data, width, height, channels)
+            image = ApiServices.createImage(file_data, width, height, channels)
             if image:
                 return Response(
                     {"detail": "file uploaded successfuly", "id": image.id},
@@ -86,6 +86,25 @@ class DeleteRetrivePDF(generics.RetrieveDestroyAPIView):
             status=status.HTTP_204_NO_CONTENT,
         )
 
+
 class RotateImage(APIView):
     def post(self, request):
-        pass
+        image_id = request.data["image_id"]
+        get_image = ApiServices.imageId(image_id)
+        if not get_image:
+            return Response(
+                {"detail": "Image Not Found"},
+                status=status.HTTP_204_NO_CONTENT,
+            )
+        image_path = get_image.image_path
+        rotate_angle = request.data["angle"]
+        rotated_image = rotate_image(image_path, rotate_angle)
+        if not rotated_image:
+            return Response(
+                {"detail": "can't rotate this image"},
+                status=status.HTTP_204_NO_CONTENT,
+            )
+        return Response(
+            {"detail": "updated",'image_id':get_image.id},
+            status=status.HTTP_202_ACCEPTED,
+        )
