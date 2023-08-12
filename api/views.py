@@ -5,8 +5,9 @@ from rest_framework import status
 from rest_framework.views import APIView
 from .serializers import UploadSerializer, ImageSerializer, PDFSerializer
 from .services import ApiServices
-from .utils import base64_convert, get_pdf_data, get_image_data, rotate_image
+from .utils import base64_convert, get_pdf_data, get_image_data
 from .models import Image, PDF
+import json
 
 
 class UploadVeiws(APIView):
@@ -90,21 +91,31 @@ class DeleteRetrivePDF(generics.RetrieveDestroyAPIView):
 class RotateImage(APIView):
     def post(self, request):
         image_id = request.data["image_id"]
-        get_image = ApiServices.imageId(image_id)
-        if not get_image:
+        angle = request.data["angle"]
+
+        update_image = ApiServices.update_image(angle, image_id)
+        if update_image:
             return Response(
-                {"detail": "Image Not Found"},
-                status=status.HTTP_204_NO_CONTENT,
-            )
-        image_path = get_image.image_path
-        rotate_angle = request.data["angle"]
-        rotated_image = rotate_image(image_path, rotate_angle)
-        if not rotated_image:
-            return Response(
-                {"detail": "can't rotate this image"},
-                status=status.HTTP_204_NO_CONTENT,
+                {"detail": "updated", "image_id": update_image.id},
+                status=status.HTTP_202_ACCEPTED,
             )
         return Response(
-            {"detail": "updated",'image_id':get_image.id},
-            status=status.HTTP_202_ACCEPTED,
+            {"detail": "can't rotate image"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+class ConvertPDF(APIView):
+    def post(self, request):
+        pdf_id = request.data["pdf_id"]
+        pdf_to_image = ApiServices.convert_to_image(pdf_id)
+
+        if pdf_to_image:
+            return Response(
+                {"detail": "converted sucessfully", "data": pdf_to_image},
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            {"detail": "can't convert pdf to image"},
+            status=status.HTTP_400_BAD_REQUEST,
         )
