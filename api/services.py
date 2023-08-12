@@ -1,84 +1,117 @@
-from .models import Image, PDF
+""" API services app."""
 from django.core.files.base import ContentFile
 from pdf2image import convert_from_path
-from .utils import get_image_data
+from .models import Image, PDF
+from .utils import decode_base64_to_file, extract_pdf_metadata, extract_image_metadata
 
 
 class ApiServices:
     @staticmethod
-    def createImage(file_data, width, height, channels):
-        create_image = Image.objects.create(
+    def upload_image_or_pdf(document):
+        """
+        Uploads an image or PDF after converting it from base64.
+        """
+        try:
+            file_data, ext = decode_base64_to_file(data=document)
+
+            if ext == "pdf":
+                create_pdf = ApiServices._create_pdf(file_data)
+                return create_pdf, 'pdf'
+
+            if ext in ["png", "jpg", "jpeg", "gif"]:
+                create_image = ApiServices._create_image(file_data)
+                return create_image, 'image'
+
+        except Exception as e:
+            print(f"Error while uploading image or PDF: {e}")
+            return None
+
+    @staticmethod
+    def _create_image(file_data):
+        """
+        Creates an image entry in the database.
+        """
+        width, height, channels = extract_image_metadata(file_data)
+        return Image.objects.create(
             image_path=file_data, width=width, height=height, channels=channels
         )
-        if not create_image:
-            return None
-
-        return create_image
 
     @staticmethod
-    def createPDF(file_data, width, height, num_pages):
-        create_pdf = PDF.objects.create(
+    def _create_pdf(file_data):
+        """
+        Creates a PDF entry in the database.
+        """
+        width, height, num_pages = extract_pdf_metadata(file_data)
+        return PDF.objects.create(
             pdf_path=file_data, width=width, height=height, num_pages=num_pages
         )
-        if not create_pdf:
-            return None
 
-        return create_pdf
-
-    def get_image_byID(image_id):
+    @staticmethod
+    def get_image_by_id(image_id):
+        """
+        Retrieve an image by its ID.
+        """
         try:
-            image = Image.objects.get(id=image_id)
-            return image
-
-        except:
+            return Image.objects.get(id=image_id)
+        except Image.DoesNotExist:
             return None
 
     @staticmethod
-    def update_image(angle, image_id):
-        from PIL import Image
+    def update_image_rotation(angle, image_id):
+        """
+        Rotates an image by the given angle.
+        """
+        from PIL import Image as PilImage
 
-        image = ApiServices.get_image_byID(image_id)
+        image_instance = ApiServices.get_image_by_id(image_id)
 
-        if image:
-            image_path = image.image_path.path  # Get the server's filesystem path
+        if not image_instance:
+            return None
 
-            img = Image.open(image_path)
-            rotated_img = img.rotate(int(angle))
+        image_path = image_instance.image_path.path #Return Full Path to Overwrite Instance Image
+        img = PilImage.open(image_path)
+        rotated_img = img.rotate(int(angle))
+        rotated_img.save(image_path, format=img.format)
 
-            # Save the rotated image directly to the file path, overwriting the original
-            rotated_img.save(image_path, format=img.format)
+        # Refresh the FileField to reflect changes
+        image_instance.image_path = image_instance.image_path
+        image_instance.save()
 
-            # Refresh the FileField to reflect changes
-            image.image_path = image.image_path
+        return image_instance
 
-            image.save()
+    @staticmethod
+    def convert_pdf_to_images(pdf_id):
+        """
+        Converts a PDF into multiple images.
+        """
+        try:
+            pdf_instance = PDF.objects.get(id=pdf_id)
+            pdf_path = pdf_instance.pdf_path.path
+            pdf_name = pdf_instance.pdf_path.name.split("/")[1].split(".")[0]
+            images_from_pdf = convert_from_path(pdf_path)
 
-            return image
-        return None
+            created_image_data = []
+            for index, image in enumerate(images_from_pdf):
+                width, height = image.size
+                channels = len(image.getbands())
+                image_path = f"images/{pdf_name}({index}).jpg"
+                image.save(f"media/{image_path}")
 
-    def convert_to_image(pdf_id):
-        pdf = PDF.objects.get(id=pdf_id)
-        pdf_path = pdf.pdf_path.path
-        pdf_name = pdf.pdf_path.name.split("/")[1].split(".")[0]
-        created_image_data = []
-        if pdf:
-            images = convert_from_path(pdf_path)
-            for i in range(len(images)):
-                width, height = images[i].size
-                channels = len(images[i].getbands())
-                image_path = "images/" + pdf_name + f"({i})" + ".jpg"
-                images[i].save("media/" + image_path)
-                created_image = Image.objects.create(
+                new_image_instance = Image.objects.create(
                     image_path=image_path, width=width, height=height, channels=channels
                 )
-                image_data = {
-                    "id": created_image.id,
-                    "image_path": created_image.image_path.url,
-                    "width": created_image.width,
-                    "height": created_image.height,
-                    "channels": created_image.channels,
-                }
 
-                created_image_data.append(image_data)
+                image_metadata = {
+                    "id": new_image_instance.id,
+                    "image_path": new_image_instance.image_path.url,
+                    "width": new_image_instance.width,
+                    "height": new_image_instance.height,
+                    "channels": new_image_instance.channels,
+                }
+                created_image_data.append(image_metadata)
+
             return created_image_data
-        return None
+
+        except Exception as e:
+            print(f"Error converting PDF to images: {e}")
+            return None

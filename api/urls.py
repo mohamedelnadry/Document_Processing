@@ -1,17 +1,28 @@
 """
-URL configuration api.
+URL configuration for the api app.
 """
+
 from django.urls import path
-from .views import UploadVeiws, Images, PDFs, DeleteRetriveImage, DeleteRetrivePDF, RotateImage, ConvertPDF
+from .views import (
+    UploadView,
+    ImagesListView,
+    PDFsListView,
+    ImageDeleteRetrieveView,
+    PDFDeleteRetrieveView,
+    RotateImageView,
+    ConvertPDFView,
+)
 
 urlpatterns = [
-    path('upload',UploadVeiws.as_view(),name = "upload_image_pdf"),
-    path('images',Images.as_view(),name = "all_images"),
-    path('pdfs',PDFs.as_view(),name = "all_pdfs"),
-    path('images/<pk>',DeleteRetriveImage.as_view(),name = "delete_veiw_images"),
-    path('pdfs/<pk>',DeleteRetrivePDF.as_view(),name = "delete_veiw_pdfs"),
-    path('rotate',RotateImage.as_view(),name = "rotate_image"),
-    path('convert-pdf-to-image',ConvertPDF.as_view(),name = "convert_pdf"),
-
-
+    # Upload routes
+    path("upload", UploadView.as_view(), name="upload_image_pdf"),
+    # List routes
+    path("images", ImagesListView.as_view(), name="list_images"),
+    path("pdfs", PDFsListView.as_view(), name="list_pdfs"),
+    # Image operation routes
+    path("images/<pk>", ImageDeleteRetrieveView.as_view(), name="manage_image"),
+    path("rotate", RotateImageView.as_view(), name="rotate_image"),
+    # PDF operation routes
+    path("pdfs/<pk>", PDFDeleteRetrieveView.as_view(), name="manage_pdf"),
+    path("convert-pdf-to-image", ConvertPDFView.as_view(), name="convert_pdf_to_image"),
 ]
