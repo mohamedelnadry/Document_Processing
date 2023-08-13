@@ -5,7 +5,7 @@ from io import BytesIO
 
 from django.core.files.base import ContentFile
 from PIL import Image
-import PyPDF2
+import pypdf
 
 
 def decode_base64_to_file(data):
@@ -33,7 +33,7 @@ def extract_pdf_metadata(file_data):
     :param file_data: The PDF file.
     :return: A tuple containing the width, height, and number of pages.
     """
-    pdf_reader = PyPDF2.PdfReader(BytesIO(file_data.read()))
+    pdf_reader = pypdf.PdfReader(BytesIO(file_data.read()))
     first_page = pdf_reader.pages[0]
 
     width = first_page.mediabox.width
