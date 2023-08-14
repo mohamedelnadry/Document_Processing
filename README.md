@@ -7,7 +7,6 @@ An API that allows users to upload images and PDF files, perform operations on t
 1. Image upload in base64 format
 2. Image rotation
 3. PDF to image conversion
-4. 
 ## Installation
 
 ### local installation
@@ -26,7 +25,7 @@ DATABASE_PASSWORD = <DATABASE_PASSWORD>
 DATABASE_HOST = <DATABASE_HOST>
 DATABASE_PORT = <DATABASE_PORT>
 
-# If using docker compose
+# If using docker-compose
 DATABASE_HOST = 'db'
 ```
 
@@ -46,7 +45,7 @@ docker-compose up
 
 * ### Upload Document:
 
-#### Endpoint :` /api/upload`
+#### Endpoint:` /api/upload`
 
 #### Method: `POST`
 
@@ -55,7 +54,7 @@ docker-compose up
 `upload`: Base64 encoded content of the image or PDF.
 
 ```
- {"upload":"data:application/pdf;base64,JVBERi0xLjQKJdPr6eEKMSAwIG9iag"}
+ {"upload": "data: application/pdf;base64,JVBERi0xLjQKJdPr6eEKMSAwIG9iag"}
 ```
 
 #### Response:
@@ -70,7 +69,7 @@ docker-compose up
 
 * ### List All Images:
 
-#### Endpoint :`/api/images`
+#### Endpoint:`/api/images`
 
 #### Method: `GET`
 
@@ -97,7 +96,7 @@ docker-compose up
 
 * ### List All PDFs:
 
-#### Endpoint :`/api/pdfs`
+#### Endpoint:`/api/pdfs`
 
 #### Method: `GET`
 
@@ -124,12 +123,12 @@ docker-compose up
 
 * ### Retrieve or Delete an Image:
 
-#### Endpoint :`/api/images/<image_id>`
+#### Endpoint:`/api/images/<image_id>`
 
 #### Method:
 
 `GET`: Retrieves the specified image's details.
-`DELETE`: Deletes the specified image.
+`DELETE`: Deletes the selected image.
 
 #### Response:
 
@@ -151,9 +150,9 @@ On Delete
 }
 ```
 
-* ### Retrieve or Delete an PDF:
+* ### Retrieve or Delete a PDF:
 
-#### Endpoint :`/api/images/<pdf_id>`
+#### Endpoint:`/api/images/<pdf_id>`
 
 #### Method:
 
@@ -182,7 +181,7 @@ On Delete
 
 * ### Rotate Image:
 
-#### Endpoint :`/api/rotate`
+#### Endpoint:`/api/rotate`
 
 #### Method: `POST`
 
@@ -209,7 +208,7 @@ On Delete
 
 * ### Convert PDF to Image:
 
-#### Endpoint :`/api/convert-pdf-to-image`
+#### Endpoint:`/api/convert-pdf-to-image`
 
 #### Method: `POST`
 
